@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kenya Connect | Culture, Tech, Lifestyle</title>
+    <meta
+      name="description"
+      content="Kenya Connect is a modern blog covering Kenyan culture, tech, lifestyle, education, and entertainment."
+    />
+    <meta property="og:title" content="Kenya Connect" />
+    <meta property="og:description" content="Story-driven journalism and lifestyle content from Kenya." />
+    <meta property="og:type" content="website" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="logo">🇰🇪 <span>Kenya Connect</span></div>
+      <nav>
+        <a href="#">Home</a>
+        <a href="#">About</a>
+        <a href="#">Blog</a>
+        <a href="#categories">Categories</a>
+        <a href="#newsletter">Contact</a>
+        <a href="/admin.html">Admin</a>
+      </nav>
+      <button id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+    </header>
+
+    <main class="container">
+      <section id="ads-header" class="ad-slot hidden">Header Ad Slot</section>
+      <section id="hero" class="hero"></section>
+
+      <section class="info-board">
+        <h2>Community Notices</h2>
+        <div id="info-items"></div>
+      </section>
+
+      <section class="content-grid">
+        <section>
+          <div class="section-head">
+            <h2>Latest Posts</h2>
+            <div class="search-wrap">
+              <input id="search-input" type="search" placeholder="Search posts..." />
+            </div>
+          </div>
+          <div id="latest-posts" class="post-grid"></div>
+
+          <h2>Trending in Kenya</h2>
+          <div id="trending-posts" class="post-grid"></div>
+
+          <h2 id="categories">Categories</h2>
+          <div id="category-filters" class="chips"></div>
+        </section>
+
+        <aside class="sidebar">
+          <section id="ads-sidebar" class="ad-slot hidden">Sidebar Ad Slot</section>
+          <section>
+            <h3>Popular Posts</h3>
+            <ul id="popular-posts"></ul>
+          </section>
+
+          <section id="newsletter">
+            <h3>Newsletter</h3>
+            <p>Get weekly highlights from Kenya Connect.</p>
+            <form id="newsletter-form">
+              <input type="email" id="email" required placeholder="you@example.com" />
+              <button type="submit">Subscribe</button>
+            </form>
+            <p id="newsletter-message" class="form-message"></p>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p><strong>Kenya Connect</strong> — Story-driven, proudly Kenyan.</p>
+      <p>Follow: X · Instagram · YouTube</p>
+      <p>Contact: hello@kenyaconnect.example</p>
+      <p><a href="/privacy.html">Privacy Policy</a> · <a href="/cookies.html">Cookie Policy</a></p>
+      <p>© 2026 Kenya Connect. All rights reserved.</p>
+    </footer>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
