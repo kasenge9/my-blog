@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kenya Connect Admin</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="site-header" style="position: static; border-radius: 12px; margin-bottom: 1rem">
+        <div class="logo">⚙️ <span>Kenya Connect CMS Dashboard</span></div>
+        <button id="logout-btn" style="padding:0.4rem 0.8rem;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Logout</button>
+      </header>
+
+      <section class="content-grid" style="grid-template-columns: 1fr 1fr">
+        <section class="sidebar">
+          <section>
+            <h2>Create Post</h2>
+            <form id="post-form" class="admin-form">
+              <input name="title" placeholder="Post title" required />
+              <textarea name="summary" placeholder="Post summary" required></textarea>
+              <input name="author" placeholder="Author name" />
+              <input name="image" placeholder="Image URL" />
+              <input name="slug" placeholder="SEO slug (optional)" />
+              <textarea name="content" placeholder="Full article content (rich text/HTML allowed)"></textarea>
+              <input name="metaTitle" placeholder="Meta title (optional)" />
+              <input name="metaDescription" placeholder="Meta description (optional)" />
+              <input name="ogImage" placeholder="Open Graph image URL (optional)" />
+              <select name="category" required>
+                <option value="">Select category</option>
+                <option>Culture</option>
+                <option>Tech</option>
+                <option>Lifestyle</option>
+                <option>Education</option>
+                <option>Entertainment</option>
+              </select>
+              <label><input type="checkbox" name="trending" /> Mark as trending</label>
+              <label><input type="checkbox" name="published" checked /> Publish now</label>
+              <button type="submit">Save Post</button>
+            </form>
+            <p id="post-message" class="form-message"></p>
+          </section>
+        </section>
+
+        <section class="sidebar">
+          <section>
+            <h2>Upload Info Notice</h2>
+            <form id="info-form" class="admin-form">
+              <input name="title" placeholder="Notice title" required />
+              <textarea name="message" placeholder="Notice message" required></textarea>
+              <button type="submit">Publish Notice</button>
+            </form>
+            <p id="info-message" class="form-message"></p>
+          </section>
+        </section>
+      </section>
+
+      <section class="content-grid" style="grid-template-columns: 1fr 1fr; margin-top: 1rem">
+        <section class="sidebar">
+          <section>
+            <h2>AdSense / Ad Slots</h2>
+            <form id="ads-form" class="admin-form">
+              <textarea name="header" placeholder="Header ad script or embed HTML"></textarea>
+              <textarea name="sidebar" placeholder="Sidebar ad script or embed HTML"></textarea>
+              <textarea name="inArticle" placeholder="In-article ad script or embed HTML"></textarea>
+              <button type="submit">Save Ad Settings</button>
+            </form>
+            <p id="ads-message" class="form-message"></p>
+          </section>
+        </section>
+
+        <section class="sidebar">
+          <section>
+            <h2>Newsletter Management</h2>
+            <form id="newsletter-form" class="admin-form">
+              <button type="submit">Load Subscribers</button>
+            </form>
+            <p id="newsletter-message" class="form-message"></p>
+            <textarea id="newsletter-export" readonly placeholder="Subscriber emails will appear here"></textarea>
+          </section>
+        </section>
+      </section>
+
+      <section class="content-grid" style="grid-template-columns: 1fr 1fr; margin-top: 1rem">
+        <section class="sidebar">
+          <section>
+            <h2>AI Content Assistant</h2>
+            <form id="ai-form" class="admin-form">
+              <input name="topic" placeholder="Topic (e.g. Kenyan startup ecosystem)" required />
+              <textarea name="content" placeholder="Draft content (optional)"></textarea>
+              <button type="submit">Generate Suggestions</button>
+            </form>
+            <p id="ai-message" class="form-message"></p>
+            <div id="ai-output" class="meta"></div>
+          </section>
+        </section>
+
+        <section class="sidebar">
+          <section>
+            <h2>Analytics Snapshot</h2>
+            <button id="analytics-btn" style="padding:0.6rem 1rem;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Load Analytics</button>
+            <p id="analytics-message" class="form-message"></p>
+            <pre id="analytics-output" style="white-space:pre-wrap;"></pre>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <script src="/admin.js"></script>
+  </body>
+</html>
