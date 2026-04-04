@@ -42,7 +42,7 @@ function maybeInArticleAd(adHtml) {
 
 function postCard(post, adHtml = '') {
   const shareLinks = socialShareLinks(post)
-    .map((item) => `<a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.label}</a>`)
+    .map((item) => `<a href="${item.url}" onclick="fetch('/api/post/${post.slug}/share',{method:'POST'})" target="_blank" rel="noopener noreferrer">${item.label}</a>`)
     .join('');
 
   return `

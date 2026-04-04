@@ -8,6 +8,8 @@ Kenya Connect has been upgraded from a basic blog into a dynamic content platfor
 - Comments system
 - Contact + About trust pages
 - SQLite-backed CMS/API
+- AI-assisted admin tools (titles, summaries, tags)
+- Smart trending score using views + comments + shares
 
 ## Run
 ```bash
@@ -33,6 +35,7 @@ ADMIN_USER=admin ADMIN_PASS=strong-password ADMIN_KEY=fallback-key node server.j
 - `GET /api/author/:slug`
 - `GET /api/post/:slug/comments`
 - `POST /api/post/:slug/comments`
+- `POST /api/post/:slug/share`
 - `POST /api/contact`
 
 ### Admin
@@ -41,6 +44,8 @@ ADMIN_USER=admin ADMIN_PASS=strong-password ADMIN_KEY=fallback-key node server.j
 - `POST /api/admin/info`
 - `POST /api/admin/settings/ads`
 - `GET /api/admin/newsletter`
+- `POST /api/admin/ai/suggest`
+- `GET /api/admin/analytics`
 
 ## Notes
 - DB file is `data/kenya_connect.db` (ignored in git).

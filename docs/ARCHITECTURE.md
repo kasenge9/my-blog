@@ -40,3 +40,9 @@
 - `/admin.html` is protected; unauthenticated users are redirected to `/admin-login.html`.
 - Login via `/api/admin/login` issues an HttpOnly session cookie.
 - Admin APIs require a valid session (or fallback x-admin-key).
+
+
+## AI + Ranking Enhancements
+- Admin AI endpoint provides title suggestions, quick summaries, and auto-tags.
+- Trending ranking now uses weighted score: `(views * 0.5) + (comments * 2) + (shares * 3)`.
+- Share endpoint records social actions for ranking insights.

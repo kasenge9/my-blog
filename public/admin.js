@@ -3,6 +3,12 @@ const infoForm = document.getElementById('info-form');
 const adsForm = document.getElementById('ads-form');
 const newsletterForm = document.getElementById('newsletter-form');
 const logoutBtn = document.getElementById('logout-btn');
+const aiForm = document.getElementById('ai-form');
+const aiMessage = document.getElementById('ai-message');
+const aiOutput = document.getElementById('ai-output');
+const analyticsBtn = document.getElementById('analytics-btn');
+const analyticsMessage = document.getElementById('analytics-message');
+const analyticsOutput = document.getElementById('analytics-output');
 
 const postMessage = document.getElementById('post-message');
 const infoMessage = document.getElementById('info-message');
@@ -105,6 +111,38 @@ newsletterForm.addEventListener('submit', async (event) => {
   const emails = result.map((subscriber) => subscriber.email).join('\n');
   newsletterExport.value = emails;
   setMessage(newsletterMessage, `Loaded ${result.length} subscribers.`, true);
+});
+
+
+aiForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const formData = new FormData(aiForm);
+  const response = await adminFetch('/api/admin/ai/suggest', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ topic: formData.get('topic'), content: formData.get('content') })
+  });
+
+  if (!response) return;
+  const payload = await response.json();
+  if (!response.ok) return setMessage(aiMessage, payload.message || 'Could not generate suggestions.', false);
+
+  setMessage(aiMessage, 'AI suggestions generated.', true);
+  aiOutput.innerHTML = `
+    <strong>Titles:</strong> ${payload.suggestions.join(' | ')}<br/>
+    <strong>Summary:</strong> ${payload.summary || 'N/A'}<br/>
+    <strong>Tags:</strong> ${(payload.tags || []).join(', ')}
+  `;
+});
+
+analyticsBtn.addEventListener('click', async () => {
+  const response = await adminFetch('/api/admin/analytics');
+  if (!response) return;
+  const payload = await response.json();
+  if (!response.ok) return setMessage(analyticsMessage, payload.message || 'Failed to load analytics.', false);
+
+  setMessage(analyticsMessage, 'Analytics loaded.', true);
+  analyticsOutput.textContent = JSON.stringify(payload, null, 2);
 });
 
 logoutBtn.addEventListener('click', async () => {

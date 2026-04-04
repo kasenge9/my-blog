@@ -81,6 +81,30 @@
           </section>
         </section>
       </section>
+
+      <section class="content-grid" style="grid-template-columns: 1fr 1fr; margin-top: 1rem">
+        <section class="sidebar">
+          <section>
+            <h2>AI Content Assistant</h2>
+            <form id="ai-form" class="admin-form">
+              <input name="topic" placeholder="Topic (e.g. Kenyan startup ecosystem)" required />
+              <textarea name="content" placeholder="Draft content (optional)"></textarea>
+              <button type="submit">Generate Suggestions</button>
+            </form>
+            <p id="ai-message" class="form-message"></p>
+            <div id="ai-output" class="meta"></div>
+          </section>
+        </section>
+
+        <section class="sidebar">
+          <section>
+            <h2>Analytics Snapshot</h2>
+            <button id="analytics-btn" style="padding:0.6rem 1rem;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Load Analytics</button>
+            <p id="analytics-message" class="form-message"></p>
+            <pre id="analytics-output" style="white-space:pre-wrap;"></pre>
+          </section>
+        </section>
+      </section>
     </main>
 
     <script src="/admin.js"></script>
