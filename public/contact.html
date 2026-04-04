@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Contact | Kenya Connect</title><link rel="stylesheet" href="/styles.css" /></head>
+<body><main class="container"><h1>Contact Us</h1>
+<form id="contact-form" class="admin-form">
+<input name="name" placeholder="Your name" required />
+<input name="email" type="email" placeholder="Your email" required />
+<textarea name="message" placeholder="Message" required></textarea>
+<button type="submit">Send Message</button>
+</form><p id="msg" class="form-message"></p><p><a href="/">Back to Home</a></p></main>
+<script>
+document.getElementById('contact-form').addEventListener('submit', async (e)=>{e.preventDefault();const fd=new FormData(e.target);const res=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:fd.get('name'),email:fd.get('email'),message:fd.get('message')})});const p=await res.json();const m=document.getElementById('msg');m.textContent=p.message;m.style.color=res.ok?'#15803D':'#C8102E';if(res.ok)e.target.reset();});
+</script></body></html>
