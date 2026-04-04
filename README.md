@@ -1,50 +1,58 @@
-# Kenya Connect — Professional Blog Platform
+# Kenya Connect — Elite Content Platform
 
-Kenya Connect is now a dynamic, AdSense-ready blog platform with:
-- SQLite-backed content storage
-- Admin CMS dashboard
-- SEO-ready routes (`sitemap.xml`, `robots.txt`)
-- Social sharing and monetization slot support
+Kenya Connect has been upgraded from a basic blog into a dynamic content platform with:
+- SEO-friendly post URLs (`/post/:slug`)
+- Category pages (`/category/:name`)
+- Author pages (`/author/:slug`)
+- Dynamic per-post SEO metadata
+- Comments system
+- Contact + About trust pages
+- SQLite-backed CMS/API
+- AI-assisted admin tools (titles, summaries, tags)
+- Smart trending score using views + comments + shares
 
-## Core upgrades
-- ✅ Dynamic database backend (`node:sqlite`) instead of JSON-only runtime storage
-- ✅ CMS-style admin dashboard for posts, notices, ad slots, and newsletter export
-- ✅ Monetization-ready ad slot configuration (header, sidebar, in-article)
-- ✅ Newsletter rate limiting for abuse protection
-- ✅ Privacy and cookie policy pages
-
-## Tech stack
-- **Backend:** Node.js HTTP server (`server.js`)
-- **Database:** SQLite (`data/kenya_connect.db` via `db.js`)
-- **Frontend:** HTML/CSS/JS (`public/`)
-
-## Run locally
+## Run
 ```bash
-ADMIN_KEY=your-secret-key node server.js
+ADMIN_USER=admin ADMIN_PASS=strong-password ADMIN_KEY=fallback-key node server.js
 ```
 
-Open:
-- Website: `http://localhost:3000`
-- Admin CMS: `http://localhost:3000/admin.html`
-- Sitemap: `http://localhost:3000/sitemap.xml`
-- Robots: `http://localhost:3000/robots.txt`
+## Key URLs
+- Home: `/`
+- Post page: `/post/:slug`
+- Category page: `/category/:name`
+- Author page: `/author/:slug`
+- Admin CMS: `/admin.html`
+- Admin login: `/admin-login.html`
+- About: `/about.html`
+- Contact: `/contact.html`
+- SEO: `/sitemap.xml`, `/robots.txt`
 
-## Public APIs
-- `GET /api/posts?category=<category>&q=<query>`
-- `GET /api/trending`
-- `GET /api/popular`
-- `GET /api/info`
-- `GET /api/settings/ads`
-- `POST /api/posts/view`
-- `POST /api/newsletter`
+## Core APIs
+### Public
+- `GET /api/posts`
+- `GET /api/post/:slug`
+- `GET /api/category/:name`
+- `GET /api/author/:slug`
+- `GET /api/post/:slug/comments`
+- `POST /api/post/:slug/comments`
+- `POST /api/post/:slug/share`
+- `POST /api/contact`
 
-## Admin APIs (`x-admin-key` required)
-- `POST /api/admin/posts`
-- `PATCH /api/admin/posts/:id`
+### Admin
+- `POST /api/admin/posts` (supports slug, content, meta fields)
+- `PATCH /api/admin/posts/:id` (draft/publish)
 - `POST /api/admin/info`
 - `POST /api/admin/settings/ads`
 - `GET /api/admin/newsletter`
+- `POST /api/admin/ai/suggest`
+- `GET /api/admin/analytics`
 
-## Blueprint
-For the full architecture, endpoint map, schema, and roadmap:
-- `docs/ARCHITECTURE.md`
+## Notes
+- DB file is `data/kenya_connect.db` (ignored in git).
+- Seed content still comes from `data/posts.json` and `data/info.json` when DB is empty.
+
+
+## Admin Authentication
+- Admin UI now requires login and a valid cookie session.
+- Blog/public pages no longer expose an Admin link.
+- Default credentials: `admin` / `admin123` (override with `ADMIN_USER` and `ADMIN_PASS`).

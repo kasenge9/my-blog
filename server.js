@@ -6,10 +6,13 @@ const { db, slugify, upsertAuthor } = require('./db');
 
 const PORT = process.env.PORT || 3000;
 const ADMIN_KEY = process.env.ADMIN_KEY || 'changeme-admin-key';
+const ADMIN_USER = process.env.ADMIN_USER || 'admin';
+const ADMIN_PASS = process.env.ADMIN_PASS || 'admin123';
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
 const newsletterRateLimit = new Map();
+const adminSessions = new Map();
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -30,8 +33,20 @@ function sendText(res, statusCode, contentType, payload) {
   res.end(payload);
 }
 
+function parseCookies(req) {
+  const raw = req.headers.cookie || '';
+  return raw.split(';').reduce((acc, part) => {
+    const [k, v] = part.trim().split('=');
+    if (k && v) acc[k] = decodeURIComponent(v);
+    return acc;
+  }, {});
+}
+
 function isAdminRequest(req) {
-  return req.headers['x-admin-key'] === ADMIN_KEY;
+  if (req.headers['x-admin-key'] && req.headers['x-admin-key'] === ADMIN_KEY) return true;
+  const cookies = parseCookies(req);
+  const token = cookies.admin_session;
+  return Boolean(token && adminSessions.has(token));
 }
 
 function getRequestBody(req, callback) {
@@ -80,6 +95,29 @@ function getAdsConfig() {
 
 function postMap(post) {
   return { ...post, trending: Boolean(post.trending), published: Boolean(post.published) };
+}
+
+function sanitizeText(value) {
+  return String(value || '').replace(/[<>]/g, '').trim();
+}
+
+function logAdminAction(action, details = '') {
+  db.prepare('INSERT INTO admin_logs (action, details) VALUES (?, ?)').run(action, details);
+}
+
+function buildAiSuggestions(topic) {
+  const base = sanitizeText(topic) || 'Kenya';
+  return [
+    `Top 7 ${base} Trends in Kenya (2026 Guide)`,
+    `What ${base} Means for Kenyan Youth in 2026`,
+    `${base}: Opportunities Every Kenyan Should Know`
+  ];
+}
+
+function generateTags(text) {
+  const words = sanitizeText(text).toLowerCase().split(/\W+/).filter((w) => w.length > 4);
+  const uniq = [...new Set(words)].slice(0, 6);
+  return uniq;
 }
 
 function renderPostPage(post) {
@@ -154,6 +192,14 @@ function handleApi(req, res, url) {
     const slug = parts[2];
     if (!slug) return sendJson(res, 404, { message: 'Post not found.' });
 
+
+    if (parts[3] === 'share' && req.method === 'POST') {
+      const post = db.prepare('SELECT id FROM posts WHERE slug = ?').get(slug);
+      if (!post) return sendJson(res, 404, { message: 'Post not found.' });
+      db.prepare('UPDATE posts SET shares = shares + 1 WHERE id = ?').run(post.id);
+      return sendJson(res, 200, { message: 'Share recorded.' });
+    }
+
     if (parts[3] === 'comments') {
       const post = db.prepare('SELECT id FROM posts WHERE slug = ?').get(slug);
       if (!post) return sendJson(res, 404, { message: 'Post not found.' });
@@ -168,8 +214,8 @@ function handleApi(req, res, url) {
       if (req.method === 'POST') {
         return getRequestBody(req, (err, payload) => {
           if (err) return sendJson(res, 400, { message: 'Invalid payload.' });
-          const name = (payload.name || '').trim();
-          const comment = (payload.comment || '').trim();
+          const name = sanitizeText(payload.name);
+          const comment = sanitizeText(payload.comment);
           if (!name || !comment) return sendJson(res, 400, { message: 'Name and comment are required.' });
           db.prepare('INSERT INTO comments (post_id, name, comment, approved) VALUES (?, ?, ?, 1)').run(post.id, name, comment);
           return sendJson(res, 201, { message: 'Comment posted.' });
@@ -198,7 +244,10 @@ function handleApi(req, res, url) {
   }
 
   if (req.method === 'GET' && url.pathname === '/api/trending') {
-    const posts = db.prepare('SELECT * FROM posts WHERE published = 1 AND trending = 1 ORDER BY date DESC LIMIT 6').all().map(postMap);
+    const posts = db
+      .prepare('SELECT * FROM posts WHERE published = 1 ORDER BY ((views * 0.5) + ((SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) * 2) + (shares * 3)) DESC, date DESC LIMIT 6')
+      .all()
+      .map(postMap);
     return sendJson(res, 200, posts);
   }
 
@@ -240,13 +289,66 @@ function handleApi(req, res, url) {
   if (req.method === 'POST' && url.pathname === '/api/contact') {
     return getRequestBody(req, (err, payload) => {
       if (err) return sendJson(res, 400, { message: 'Invalid request payload.' });
-      const name = (payload.name || '').trim();
-      const email = (payload.email || '').trim().toLowerCase();
-      const message = (payload.message || '').trim();
+      const name = sanitizeText(payload.name);
+      const email = sanitizeText(payload.email).toLowerCase();
+      const message = sanitizeText(payload.message);
       if (!name || !email || !message) return sendJson(res, 400, { message: 'All fields are required.' });
       db.prepare('INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)').run(name, email, message);
       return sendJson(res, 201, { message: 'Message sent successfully.' });
     });
+  }
+
+
+  if (req.method === 'POST' && url.pathname === '/api/admin/login') {
+    return getRequestBody(req, (err, payload) => {
+      if (err) return sendJson(res, 400, { message: 'Invalid request payload.' });
+      const username = (payload.username || '').trim();
+      const password = (payload.password || '').trim();
+      if (username !== ADMIN_USER || password !== ADMIN_PASS) {
+        return sendJson(res, 401, { message: 'Invalid admin credentials.' });
+      }
+
+      const token = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      adminSessions.set(token, { username, createdAt: Date.now() });
+      logAdminAction('admin_login', username);
+      res.setHeader('Set-Cookie', `admin_session=${encodeURIComponent(token)}; HttpOnly; Path=/; Max-Age=28800; SameSite=Lax`);
+      return sendJson(res, 200, { message: 'Login successful.' });
+    });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/admin/logout') {
+    const cookies = parseCookies(req);
+    if (cookies.admin_session) adminSessions.delete(cookies.admin_session);
+    logAdminAction('admin_logout');
+    res.setHeader('Set-Cookie', 'admin_session=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax');
+    return sendJson(res, 200, { message: 'Logged out.' });
+  }
+
+
+  if (req.method === 'POST' && url.pathname === '/api/admin/ai/suggest') {
+    if (!isAdminRequest(req)) return sendJson(res, 401, { message: 'Unauthorized admin request.' });
+    return getRequestBody(req, (err, payload) => {
+      if (err) return sendJson(res, 400, { message: 'Invalid request payload.' });
+      const topic = sanitizeText(payload.topic);
+      const content = sanitizeText(payload.content);
+      const suggestions = buildAiSuggestions(topic);
+      const summary = content ? `${content.slice(0, 140)}...` : '';
+      const tags = generateTags(`${topic} ${content}`);
+      logAdminAction('ai_suggest', topic);
+      return sendJson(res, 200, { suggestions, summary, tags });
+    });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/admin/analytics') {
+    if (!isAdminRequest(req)) return sendJson(res, 401, { message: 'Unauthorized admin request.' });
+    const topPosts = db.prepare('SELECT title, views, shares FROM posts ORDER BY views DESC LIMIT 5').all();
+    const recentLogs = db.prepare('SELECT action, details, created_at AS createdAt FROM admin_logs ORDER BY id DESC LIMIT 8').all();
+    const totals = {
+      posts: db.prepare('SELECT COUNT(*) AS count FROM posts').get().count,
+      comments: db.prepare('SELECT COUNT(*) AS count FROM comments').get().count,
+      subscribers: db.prepare('SELECT COUNT(*) AS count FROM newsletter_subscribers').get().count
+    };
+    return sendJson(res, 200, { totals, topPosts, recentLogs });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/admin/newsletter') {
@@ -259,12 +361,12 @@ function handleApi(req, res, url) {
     if (!isAdminRequest(req)) return sendJson(res, 401, { message: 'Unauthorized admin request.' });
     return getRequestBody(req, (err, payload) => {
       if (err) return sendJson(res, 400, { message: 'Invalid request payload.' });
-      const title = (payload.title || '').trim();
-      const summary = (payload.summary || '').trim();
-      const content = (payload.content || '').trim();
-      const category = (payload.category || '').trim();
-      const authorName = (payload.author || '').trim() || 'Kenya Connect Team';
-      const image = (payload.image || '').trim() || 'https://source.unsplash.com/7DS9AKLs23o/1200x800';
+      const title = sanitizeText(payload.title);
+      const summary = sanitizeText(payload.summary);
+      const content = sanitizeText(payload.content);
+      const category = sanitizeText(payload.category);
+      const authorName = sanitizeText(payload.author) || 'Kenya Connect Team';
+      const image = sanitizeText(payload.image) || 'https://source.unsplash.com/7DS9AKLs23o/1200x800';
       if (!title || !summary || !category) return sendJson(res, 400, { message: 'title, summary, and category are required.' });
 
       const author = upsertAuthor(authorName);
@@ -273,8 +375,8 @@ function handleApi(req, res, url) {
       const metaDescription = (payload.metaDescription || summary).trim();
 
       db.prepare(`
-        INSERT INTO posts (slug, title, summary, content, category, author, author_slug, date, image, meta_title, meta_description, og_image, trending, views, published)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
+        INSERT INTO posts (slug, title, summary, content, category, author, author_slug, date, image, meta_title, meta_description, og_image, trending, views, shares, published)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?)
       `).run(
         slug,
         title,
@@ -292,6 +394,7 @@ function handleApi(req, res, url) {
         payload.published === false ? 0 : 1
       );
 
+      logAdminAction('post_saved', slug);
       return sendJson(res, 201, { message: 'Post saved successfully.', slug });
     });
   }
@@ -314,6 +417,7 @@ function handleApi(req, res, url) {
       const message = (payload.message || '').trim();
       if (!title || !message) return sendJson(res, 400, { message: 'title and message are required.' });
       db.prepare('INSERT INTO info_notices (title, message) VALUES (?, ?)').run(title, message);
+      logAdminAction('info_notice_added', title);
       return sendJson(res, 201, { message: 'Info notice added.' });
     });
   }
@@ -324,6 +428,7 @@ function handleApi(req, res, url) {
       if (err) return sendJson(res, 400, { message: 'Invalid request payload.' });
       const upsert = db.prepare('INSERT INTO site_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value');
       [['ads_header', payload.header || ''], ['ads_sidebar', payload.sidebar || ''], ['ads_in_article', payload.inArticle || '']].forEach(([k, v]) => upsert.run(k, v));
+      logAdminAction('ad_settings_updated');
       return sendJson(res, 200, { message: 'Ad settings updated.' });
     });
   }
@@ -349,6 +454,19 @@ function handleSpecialRoutes(req, res, url) {
     const post = db.prepare('SELECT * FROM posts WHERE slug = ? AND published = 1').get(slug);
     if (!post) return sendText(res, 404, 'text/plain; charset=utf-8', 'Post not found');
     return sendText(res, 200, MIME_TYPES['.html'], renderPostPage(post));
+  }
+
+
+  if (url.pathname === '/admin.html') {
+    if (!isAdminRequest(req)) {
+      res.writeHead(302, { Location: '/admin-login.html' });
+      return res.end();
+    }
+    return serveStatic(res, path.join(PUBLIC_DIR, 'admin.html'));
+  }
+
+  if (url.pathname === '/admin-login.html') {
+    return serveStatic(res, path.join(PUBLIC_DIR, 'admin-login.html'));
   }
 
   if (url.pathname.startsWith('/category/')) {

@@ -34,6 +34,7 @@ db.exec(`
     og_image TEXT DEFAULT '',
     trending INTEGER DEFAULT 0,
     views INTEGER DEFAULT 0,
+    shares INTEGER DEFAULT 0,
     published INTEGER DEFAULT 1,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
   );
@@ -77,6 +78,14 @@ db.exec(`
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
   );
 
+
+  CREATE TABLE IF NOT EXISTS admin_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    action TEXT NOT NULL,
+    details TEXT DEFAULT '',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  );
+
   CREATE TABLE IF NOT EXISTS site_settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
@@ -93,6 +102,7 @@ function runMigrations() {
   ensureColumn('posts', 'content', "TEXT DEFAULT ''");
   ensureColumn('posts', 'author_slug', "TEXT DEFAULT ''");
   ensureColumn('posts', 'meta_title', "TEXT DEFAULT ''");
+  ensureColumn('posts', 'shares', 'INTEGER DEFAULT 0');
   ensureColumn('posts', 'meta_description', "TEXT DEFAULT ''");
   ensureColumn('posts', 'og_image', "TEXT DEFAULT ''");
 }
@@ -125,8 +135,8 @@ function seedIfEmpty() {
   if (postCount === 0) {
     const posts = readSeed(POSTS_SEED_FILE);
     const stmt = db.prepare(`
-      INSERT INTO posts (slug, title, summary, content, category, author, author_slug, date, image, meta_title, meta_description, og_image, trending, views, published)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+      INSERT INTO posts (slug, title, summary, content, category, author, author_slug, date, image, meta_title, meta_description, og_image, trending, views, shares, published)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
     `);
 
     for (const post of posts) {
@@ -150,7 +160,8 @@ function seedIfEmpty() {
         metaDescription,
         post.image || '',
         post.trending ? 1 : 0,
-        post.views || 0
+        post.views || 0,
+        post.shares || 0
       );
     }
   }
