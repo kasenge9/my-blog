@@ -29,6 +29,11 @@ postForm.addEventListener('submit', async (event) => {
       summary: formData.get('summary'),
       author: formData.get('author'),
       image: formData.get('image'),
+      slug: formData.get('slug'),
+      content: formData.get('content'),
+      metaTitle: formData.get('metaTitle'),
+      metaDescription: formData.get('metaDescription'),
+      ogImage: formData.get('ogImage'),
       category: formData.get('category'),
       trending: formData.get('trending') === 'on',
       published: formData.get('published') === 'on'

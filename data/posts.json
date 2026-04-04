@@ -37,7 +37,9 @@
     "author": "Njeri Mugo",
     "date": "2026-03-18",
     "image": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80",
-    "trending": false
+    "trending": false,
+    "slug": "scholarship-opportunities-kenyan-students-should-track-in-2026",
+    "content": "An updated shortlist of local and global scholarship programs with upcoming deadlines.\n\nThis feature story is part of Kenya Connect\u2019s ongoing coverage."
   },
   {
     "id": 5,
@@ -47,6 +49,8 @@
     "author": "Mercy Atieno",
     "date": "2026-03-15",
     "image": "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=80",
-    "trending": true
+    "trending": true,
+    "slug": "5-kenyan-films-and-series-everyone-is-talking-about",
+    "content": "The latest homegrown releases earning buzz and where you can watch them.\n\nThis feature story is part of Kenya Connect\u2019s ongoing coverage."
   }
 ]

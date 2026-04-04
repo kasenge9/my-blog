@@ -49,8 +49,8 @@ function postCard(post, adHtml = '') {
     <article class="post-card">
       <img src="${post.image}" alt="${post.title}" loading="lazy" />
       <div class="post-body">
-        <p class="meta">${post.category} · ${formatDate(post.date)}</p>
-        <h3>${post.title}</h3>
+        <p class="meta"><a href="/category/${post.category.toLowerCase()}">${post.category}</a> · ${formatDate(post.date)}</p>
+        <h3><a href="/post/${post.slug}">${post.title}</a></h3>
         <p>${post.summary}</p>
         ${maybeInArticleAd(adHtml)}
         <div class="share-row">
